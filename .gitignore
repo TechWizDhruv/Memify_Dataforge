@@ -38,4 +38,7 @@ env/
 # Project specific
 meme/output/
 *.log
-.DS_Store 
+.DS_Store
+
+# Large files
+Miniconda3-latest-MacOSX-arm64.sh 
