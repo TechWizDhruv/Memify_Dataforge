@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemeMind - AI-Powered Meme Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .header {
+            background: linear-gradient(135deg, #6f42c1, #007bff);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            border: none;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #6f42c1;
+            border-color: #6f42c1;
+        }
+        .btn-primary:hover {
+            background-color: #5a32a3;
+            border-color: #5a32a3;
+        }
+        .result-container {
+            display: none;
+        }
+        .meme-image {
+            max-width: 100%;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .analysis-tab {
+            cursor: pointer;
+        }
+        .analysis-content {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+        }
+        .tag {
+            display: inline-block;
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .emotion-tag {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .topic-tag {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .sentiment-tag {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .tone-tag {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        .entity-tag {
+            background-color: #e2e3e5;
+            color: #41464b;
+        }
+        footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            background-color: #212529;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-center">
+        <div class="container">
+            <h1 class="display-4">
+                <span style="font-weight: bold;">Meme</span><span style="font-weight: normal;">Mind</span>
+            </h1>
+            <p class="lead">AI-Powered Meme Generator</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card">
+                    <div class="card-header">Enter your topic or idea</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <textarea id="inputText" class="form-control" rows="3" placeholder="Enter a topic, headline, or idea (e.g., 'When your code finally compiles after 100 errors')"></textarea>
+                        </div>
+                        <button id="generateBtn" class="btn btn-primary w-100">Generate Meme</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading">
+            <div class="spinner-border loading-spinner text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Analyzing your topic and generating meme...</p>
+        </div>
+
+        <div class="result-container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">Your Meme</div>
+                        <div class="card-body text-center">
+                            <img id="memeImage" class="meme-image" src="" alt="Generated Meme">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">NLP Analysis</div>
+                        <div class="card-body">
+                            <ul class="nav nav-tabs" id="analysisTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab">Summary</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="sentiment-tab" data-bs-toggle="tab" data-bs-target="#sentiment" type="button" role="tab">Sentiment</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="emotions-tab" data-bs-toggle="tab" data-bs-target="#emotions" type="button" role="tab">Emotions</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="context-tab" data-bs-toggle="tab" data-bs-target="#context" type="button" role="tab">Context</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content p-3" id="analysisTabContent">
+                                <div class="tab-pane fade show active" id="summary" role="tabpanel">
+                                    <h5>Analysis Summary</h5>
+                                    <div id="summaryContent" class="analysis-content">
+                                        <p><strong>Original Text:</strong> <span id="originalText"></span></p>
+                                        <div class="mb-2">
+                                            <strong>Sentiment:</strong> <span id="sentimentLabel" class="tag sentiment-tag"></span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Tone:</strong> <span id="toneLabel" class="tag tone-tag"></span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Top Emotions:</strong> <div id="emotionsContainer"></div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Topics:</strong> <div id="topicsContainer"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="sentiment" role="tabpanel">
+                                    <h5>Sentiment Analysis</h5>
+                                    <div id="sentimentContent" class="analysis-content">
+                                        <div class="mb-3">
+                                            <strong>VADER Sentiment:</strong>
+                                            <div class="progress mt-2" style="height: 20px;">
+                                                <div id="positiveBar" class="progress-bar bg-success" role="progressbar" style="width: 0%">Positive</div>
+                                                <div id="neutralBar" class="progress-bar bg-secondary" role="progressbar" style="width: 0%">Neutral</div>
+                                                <div id="negativeBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%">Negative</div>
+                                            </div>
+                                            <div class="mt-1 text-muted small">
+                                                <span id="positiveValue"></span> positive, 
+                                                <span id="neutralValue"></span> neutral, 
+                                                <span id="negativeValue"></span> negative
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <strong>Compound Score:</strong> <span id="compoundScore"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="emotions" role="tabpanel">
+                                    <h5>Emotion Detection</h5>
+                                    <div id="emotionsContent" class="analysis-content">
+                                        <div id="emotionsDetailContainer">
+                                            <p class="text-muted">No emotions detected.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="context" role="tabpanel">
+                                    <h5>Context Analysis</h5>
+                                    <div id="contextContent" class="analysis-content">
+                                        <div class="mb-3">
+                                            <strong>Detected Topics:</strong>
+                                            <div id="topicsDetailContainer"></div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>Formality:</strong> <span id="formalityLabel"></span>
+                                        </div>
+                                        <div class="mb-3">
+                                            <strong>Named Entities:</strong>
+                                            <div id="entitiesContainer"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center">
+        <div class="container">
+            <p>MemeMind - AI-Powered Meme Generator</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generateBtn');
+            const inputText = document.getElementById('inputText');
+            const loading = document.querySelector('.loading');
+            const resultContainer = document.querySelector('.result-container');
+            const memeImage = document.getElementById('memeImage');
+            
+            // Form submission
+            generateBtn.addEventListener('click', function() {
+                const text = inputText.value.trim();
+                if (!text) {
+                    alert('Please enter a topic or idea first.');
+                    return;
+                }
+                
+                // Show loading, hide results
+                loading.style.display = 'block';
+                resultContainer.style.display = 'none';
+                
+                // Make API request
+                fetch('/api/generate-meme', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading
+                    loading.style.display = 'none';
+                    
+                    // Display result
+                    resultContainer.style.display = 'block';
+                    
+                    // Set meme image
+                    memeImage.src = data.meme_url;
+                    
+                    // Display analysis results
+                    displayAnalysis(data.analysis);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loading.style.display = 'none';
+                    alert('An error occurred. Please try again.');
+                });
+            });
+            
+            function displayAnalysis(analysis) {
+                // Set original text
+                document.getElementById('originalText').textContent = analysis.original_text;
+                
+                // Set sentiment
+                const compound = analysis.sentiment.vader.compound;
+                let sentimentLabel;
+                if (compound >= 0.05) {
+                    sentimentLabel = "Positive";
+                } else if (compound <= -0.05) {
+                    sentimentLabel = "Negative";
+                } else {
+                    sentimentLabel = "Neutral";
+                }
+                document.getElementById('sentimentLabel').textContent = sentimentLabel;
+                
+                // Set tone
+                document.getElementById('toneLabel').textContent = 
+                    analysis.tone.charAt(0).toUpperCase() + analysis.tone.slice(1);
+                
+                // Set emotions
+                const emotionsContainer = document.getElementById('emotionsContainer');
+                emotionsContainer.innerHTML = '';
+                const emotionsDetailContainer = document.getElementById('emotionsDetailContainer');
+                emotionsDetailContainer.innerHTML = '';
+                
+                if (analysis.emotions && analysis.emotions.length > 0) {
+                    analysis.emotions.forEach(emotion => {
+                        // For summary tab
+                        const emotionTag = document.createElement('span');
+                        emotionTag.classList.add('tag', 'emotion-tag');
+                        emotionTag.textContent = emotion.label;
+                        emotionsContainer.appendChild(emotionTag);
+                        
+                        // For emotions tab
+                        const emotionDetail = document.createElement('div');
+                        emotionDetail.classList.add('mb-2');
+                        emotionDetail.innerHTML = `
+                            <strong>${emotion.label.charAt(0).toUpperCase() + emotion.label.slice(1)}:</strong>
+                            <div class="progress" style="height: 15px;">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                     style="width: ${emotion.score * 100}%" 
+                                     aria-valuenow="${emotion.score * 100}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                     ${Math.round(emotion.score * 100)}%
+                                </div>
+                            </div>
+                        `;
+                        emotionsDetailContainer.appendChild(emotionDetail);
+                    });
+                } else {
+                    emotionsContainer.innerHTML = '<span class="text-muted">No emotions detected</span>';
+                }
+                
+                // Set topics
+                const topicsContainer = document.getElementById('topicsContainer');
+                topicsContainer.innerHTML = '';
+                const topicsDetailContainer = document.getElementById('topicsDetailContainer');
+                topicsDetailContainer.innerHTML = '';
+                
+                if (analysis.topics && analysis.topics.length > 0) {
+                    analysis.topics.forEach(topic => {
+                        // For summary tab
+                        const topicTag = document.createElement('span');
+                        topicTag.classList.add('tag', 'topic-tag');
+                        topicTag.textContent = topic;
+                        topicsContainer.appendChild(topicTag);
+                        
+                        // For context tab
+                        const topicDetail = document.createElement('span');
+                        topicDetail.classList.add('tag', 'topic-tag', 'me-2');
+                        topicDetail.textContent = topic;
+                        topicsDetailContainer.appendChild(topicDetail);
+                    });
+                } else {
+                    topicsContainer.innerHTML = '<span class="text-muted">No specific topics detected</span>';
+                    topicsDetailContainer.innerHTML = '<span class="text-muted">No specific topics detected</span>';
+                }
+                
+                // Set entities
+                const entitiesContainer = document.getElementById('entitiesContainer');
+                entitiesContainer.innerHTML = '';
+                
+                if (analysis.entities && analysis.entities.length > 0) {
+                    analysis.entities.forEach(entity => {
+                        const entityTag = document.createElement('span');
+                        entityTag.classList.add('tag', 'entity-tag', 'me-2');
+                        entityTag.textContent = `${entity.text} (${entity.label})`;
+                        entitiesContainer.appendChild(entityTag);
+                    });
+                } else {
+                    entitiesContainer.innerHTML = '<span class="text-muted">No entities detected</span>';
+                }
+                
+                // Set formality
+                document.getElementById('formalityLabel').textContent = analysis.formality;
+                
+                // Set sentiment details
+                const vader = analysis.sentiment.vader;
+                document.getElementById('positiveValue').textContent = Math.round(vader.positive * 100) + '%';
+                document.getElementById('neutralValue').textContent = Math.round(vader.neutral * 100) + '%';
+                document.getElementById('negativeValue').textContent = Math.round(vader.negative * 100) + '%';
+                document.getElementById('compoundScore').textContent = vader.compound.toFixed(2);
+                
+                // Update progress bars
+                document.getElementById('positiveBar').style.width = (vader.positive * 100) + '%';
+                document.getElementById('neutralBar').style.width = (vader.neutral * 100) + '%';
+                document.getElementById('negativeBar').style.width = (vader.negative * 100) + '%';
+            }
+        });
+    </script>
+</body>
+</html> 
