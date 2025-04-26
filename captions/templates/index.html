@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meme Caption Generator</title>
+    <style>
+        .loading { color: #666; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h2>Give a meme idea</h2>
+    <input id="prompt" type="text" placeholder="e.g., When you forget your own password" />
+    <button id="generateBtn" onclick="generateCaption()">Generate Caption</button>
+    <p id="caption"></p>
+
+    <script>
+        async function generateCaption() {
+            const prompt = document.getElementById("prompt").value;
+            const captionElement = document.getElementById("caption");
+            const generateBtn = document.getElementById("generateBtn");
+
+            if (!prompt) {
+                captionElement.innerHTML = '<span class="error">Please enter a prompt</span>';
+                return;
+            }
+
+            try {
+                generateBtn.disabled = true;
+                captionElement.innerHTML = '<span class="loading">Generating caption...</span>';
+
+                const res = await fetch("/generate-caption", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    captionElement.innerText = data.caption;
+                } else {
+                    captionElement.innerHTML = '<span class="error">Error: ' + data.error + '</span>';
+                }
+            } catch (error) {
+                captionElement.innerHTML = '<span class="error">Error generating caption</span>';
+            } finally {
+                generateBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
