@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # Configure Gemini API with basic settings
-GOOGLE_API_KEY = "AIzaSyDtJJye--eErX4cR_5TAFc0aZXgYTJRC_w"
+GOOGLE_API_KEY = "API KEY"
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # Print available models for debugging
